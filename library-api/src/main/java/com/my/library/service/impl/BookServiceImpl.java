@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -19,12 +20,14 @@ public class BookServiceImpl implements BookService {
         this.bookRepository = bookRepository;
     }
 
+    @Transactional
     @Override
     public BookDto getById(long id) {
         Book book = bookRepository.findById(id).orElse(null);
         return BookMapper.INSTANCE.mapBookDto(book);
     }
 
+    @Transactional
     @Override
     public Page<BookDto> getSortedPage(int page, int size, String sortBy, String order) {
         Pageable pageable = PageRequest.of(page, size, order.equals("desc")
@@ -32,12 +35,14 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findAll(pageable).map(BookMapper.INSTANCE::mapBookDto);
     }
 
+    @Transactional
     @Override
     public BookDto create(BookDto bookDto) {
         Book created = bookRepository.save(BookMapper.INSTANCE.mapBook(bookDto));
         return BookMapper.INSTANCE.mapBookDto(created);
     }
 
+    @Transactional
     @Override
     public BookDto update(BookDto book) {
         Book persisted = bookRepository.findById(book.getId()).orElse(null);
@@ -49,6 +54,7 @@ public class BookServiceImpl implements BookService {
         return BookMapper.INSTANCE.mapBookDto(bookRepository.save(persisted));
     }
 
+    @Transactional
     @Override
     public void deleteById(long id) {
         bookRepository.deleteById(id);
