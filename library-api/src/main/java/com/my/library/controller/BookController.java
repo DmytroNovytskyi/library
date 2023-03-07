@@ -3,17 +3,15 @@ package com.my.library.controller;
 import com.my.library.controller.api.BookApi;
 import com.my.library.dto.BookDto;
 import com.my.library.service.BookService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class BookController implements BookApi {
     private final BookService bookService;
-
-    public BookController(BookService bookService) {
-        this.bookService = bookService;
-    }
 
     @Override
     public BookDto getById(long id) {

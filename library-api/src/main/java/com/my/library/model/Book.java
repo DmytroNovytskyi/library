@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.Hibernate;
 
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -23,6 +24,9 @@ public class Book {
     private String name;
     @Column(nullable = false)
     private Integer available;
+    @ManyToMany(mappedBy = "books")
+    @ToString.Exclude
+    private Set<User> users;
 
     @Override
     public boolean equals(Object o) {

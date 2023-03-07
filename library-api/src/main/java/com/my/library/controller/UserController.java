@@ -3,17 +3,15 @@ package com.my.library.controller;
 import com.my.library.controller.api.UserApi;
 import com.my.library.dto.UserDto;
 import com.my.library.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class UserController implements UserApi {
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     @Override
     public UserDto getById(long id) {

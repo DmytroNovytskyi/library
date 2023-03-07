@@ -1,12 +1,14 @@
 package com.my.library.service.impl;
 
 import com.my.library.dto.UserDto;
+import com.my.library.exception.*;
 import com.my.library.mapper.UserMapper;
 import com.my.library.model.Book;
 import com.my.library.model.User;
 import com.my.library.repository.BookRepository;
 import com.my.library.repository.UserRepository;
 import com.my.library.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,20 +17,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
 
-    public UserServiceImpl(UserRepository userRepository,
-                           BookRepository bookRepository) {
-        this.userRepository = userRepository;
-        this.bookRepository = bookRepository;
-    }
-
     @Transactional
     @Override
     public UserDto getById(long id) {
-        User user = userRepository.findById(id).orElse(null);
+        User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
         return UserMapper.INSTANCE.mapUserDto(user);
     }
 
@@ -43,18 +40,21 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserDto create(UserDto userDto) {
-        User created = userRepository.save(UserMapper.INSTANCE.mapUser(userDto));
-        return UserMapper.INSTANCE.mapUserDto(created);
+        User user = UserMapper.INSTANCE.mapUser(userDto);
+        if (userRepository.existsByUsernameOrEmail(user.getUsername(), user.getEmail())) {
+            throw new UserAlreadyExistsException();
+        }
+        return UserMapper.INSTANCE.mapUserDto(userRepository.save(user));
     }
 
     @Transactional
     @Override
     public UserDto update(UserDto userDto) {
-        User persisted = userRepository.findById(userDto.getId()).orElse(null);
-        if (persisted == null) {
-            throw new RuntimeException("User was not found!");
-        }
         User updating = UserMapper.INSTANCE.mapUser(userDto);
+        User persisted = userRepository.findById(updating.getId()).orElseThrow(UserNotFoundException::new);
+        if (userRepository.existsByEmailAndIdIsNot(updating.getEmail(), persisted.getId())) {
+            throw new UserAlreadyExistsException();
+        }
         UserMapper.INSTANCE.mapPresentFields(persisted, updating);
         return UserMapper.INSTANCE.mapUserDto(userRepository.save(persisted));
     }
@@ -62,48 +62,40 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void deleteById(long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User was not found!"));
-        if (user.getBooks().isEmpty()) {
-            userRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("User has issued books!");
+        User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        if (!user.getBooks().isEmpty()) {
+            throw new UserIssuedBookException();
         }
+        userRepository.deleteById(id);
     }
 
     @Transactional
     @Override
     public UserDto issueBook(long userId, long bookId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User was not found!"));
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Book was not found!"));
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
         int available = book.getAvailable();
         if (available == 0) {
-            throw new RuntimeException("No available books!");
+            throw new NoAvailableBooksException();
         }
-        if (user.getBooks().add(book)) {
-            book.setAvailable(available - 1);
-            bookRepository.save(book);
-        } else {
-            throw new RuntimeException("Book had been already issued to user!");
+        if (!user.getBooks().add(book)) {
+            throw new BookAlreadyIssuedException();
         }
+        book.setAvailable(available - 1);
+        bookRepository.save(book);
         return UserMapper.INSTANCE.mapUserDto(userRepository.save(user));
     }
 
     @Transactional
     @Override
     public UserDto returnBook(long userId, long bookId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User was not found!"));
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Book was not found!"));
-        if (user.getBooks().remove(book)) {
-            book.setAvailable(book.getAvailable() + 1);
-            bookRepository.save(book);
-        } else {
-            throw new RuntimeException("Book was not issued to user!");
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
+        if (!user.getBooks().remove(book)) {
+            throw new BookNotIssuedException();
         }
+        book.setAvailable(book.getAvailable() + 1);
+        bookRepository.save(book);
         return UserMapper.INSTANCE.mapUserDto(userRepository.save(user));
     }
 }
