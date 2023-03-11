@@ -1,4 +1,4 @@
-package util;
+package com.my.library.util;
 
 import org.springframework.data.domain.*;
 

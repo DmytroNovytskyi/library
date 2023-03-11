@@ -19,8 +19,8 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static util.CommonTestData.*;
-import static util.UserTestData.*;
+import static com.my.library.util.CommonTestData.*;
+import static com.my.library.util.UserTestData.*;
 
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
