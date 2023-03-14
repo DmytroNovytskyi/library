@@ -52,7 +52,9 @@ public class UserServiceImpl implements UserService {
     public UserDto update(UserDto userDto) {
         User updating = UserMapper.INSTANCE.mapUser(userDto);
         User persisted = userRepository.findById(updating.getId()).orElseThrow(UserNotFoundException::new);
-        if (userRepository.existsByEmailAndIdIsNot(updating.getEmail(), persisted.getId())) {
+        String updatingUsername = updating.getUsername() == null ? persisted.getUsername() : updating.getUsername();
+        String updatingEmail = updating.getEmail() == null ? persisted.getEmail() : updating.getEmail();
+        if (userRepository.existsByUsernameOrEmailAndIdIsNot(updatingUsername, updatingEmail, persisted.getId())) {
             throw new UserAlreadyExistsException();
         }
         UserMapper.INSTANCE.mapPresentFields(persisted, updating);
