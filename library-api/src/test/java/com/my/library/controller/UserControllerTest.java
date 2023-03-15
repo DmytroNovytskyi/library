@@ -1,9 +1,11 @@
 package com.my.library.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.my.library.dto.BookDto;
 import com.my.library.dto.UserDto;
 import com.my.library.exception.wrapper.ExceptionType;
 import com.my.library.service.UserService;
+import com.my.library.util.BookTestData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -194,5 +196,68 @@ public class UserControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].exceptionType").value(ExceptionType.VALIDATION_EXCEPTION.name()));
         verify(userService, never()).deleteById(INVALID_ID);
+    }
+
+    @Test
+    void givenValidUserAndBookId_whenIssueBook_thenReturnUserWithIssuedBook() throws Exception {
+        UserDto userDto = createUserDto();
+        BookDto bookDto = BookTestData.createBookDto();
+        int available = bookDto.getAvailable() - 1;
+        bookDto.setAvailable(available);
+        userDto.setBooks(new HashSet<>(List.of(bookDto)));
+        when(userService.issueBook(ID, BookTestData.ID)).thenReturn(userDto);
+
+        mockMvc.perform(post("/user/issue/{userId}/{bookId}", ID, BookTestData.ID))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(ID))
+                .andExpect(jsonPath("$.username").value(USERNAME))
+                .andExpect(jsonPath("$.email").value(EMAIL))
+                .andExpect(jsonPath("$.books").isNotEmpty())
+                .andExpect(jsonPath("$.books[0].id").value(BookTestData.ID))
+                .andExpect(jsonPath("$.books[0].author").value(BookTestData.AUTHOR))
+                .andExpect(jsonPath("$.books[0].name").value(BookTestData.NAME))
+                .andExpect(jsonPath("$.books[0].available").value(available));
+        verify(userService).issueBook(ID, BookTestData.ID);
+    }
+
+    @Test
+    void givenInvalidUserAndBookId_whenIssueBook_thenReturnExceptionListJson() throws Exception {
+        mockMvc.perform(post("/user/issue/{userId}/{bookId}", INVALID_ID, BookTestData.INVALID_ID))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].exceptionType").value(ExceptionType.VALIDATION_EXCEPTION.name()))
+                .andExpect(jsonPath("$[1].exceptionType").value(ExceptionType.VALIDATION_EXCEPTION.name()));
+        verify(userService, never()).issueBook(INVALID_ID, BookTestData.INVALID_ID);
+    }
+
+    @Test
+    void givenValidUserAndBookId_whenReturnBook_thenReturnUserWithEmptyBooks() throws Exception {
+        UserDto userDto = createUserDto();
+        userDto.setBooks(new HashSet<>());
+        when(userService.returnBook(ID, BookTestData.ID)).thenReturn(userDto);
+
+        mockMvc.perform(post("/user/return/{userId}/{bookId}", ID, BookTestData.ID))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(ID))
+                .andExpect(jsonPath("$.username").value(USERNAME))
+                .andExpect(jsonPath("$.email").value(EMAIL))
+                .andExpect(jsonPath("$.books").isEmpty());
+        verify(userService).returnBook(ID, BookTestData.ID);
+    }
+
+    @Test
+    void givenInvalidUserAndBookId_whenReturnBook_thenReturnExceptionListJson() throws Exception {
+        mockMvc.perform(post("/user/return/{userId}/{bookId}", INVALID_ID, BookTestData.INVALID_ID))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].exceptionType").value(ExceptionType.VALIDATION_EXCEPTION.name()))
+                .andExpect(jsonPath("$[1].exceptionType").value(ExceptionType.VALIDATION_EXCEPTION.name()));
+        verify(userService, never()).returnBook(INVALID_ID, BookTestData.INVALID_ID);
     }
 }

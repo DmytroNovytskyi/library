@@ -44,12 +44,14 @@ public interface UserApi {
                                 @Min(value = 1, message = "{userApi.delete.id.min}") long id);
 
     @PostMapping("/issue/{userId}/{bookId}")
+    @ResponseStatus(HttpStatus.OK)
     UserDto issueBook(@PathVariable("userId")
                       @Min(value = 1, message = "{userApi.issueBook.userId.min}") long userId,
                       @PathVariable("bookId")
                       @Min(value = 1, message = "{userApi.issueBook.bookId.min}") long bookId);
 
     @PostMapping("/return/{userId}/{bookId}")
+    @ResponseStatus(HttpStatus.OK)
     UserDto returnBook(@PathVariable("userId")
                        @Min(value = 1, message = "{userApi.returnBook.userId.min}") long userId,
                        @PathVariable("bookId")

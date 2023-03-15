@@ -114,17 +114,17 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void givenUserDtoWithExistingUsernameOrEmail_whenUpdate_thenThrowUserAlreadyExistsException() {
+    void givenUserDtoWithExistingEmail_whenUpdate_thenThrowUserAlreadyExistsException() {
         UserDto userDto = createUserDto();
         User user = createUser();
 
         when(userRepository.findById(ID)).thenReturn(Optional.of(user));
-        when(userRepository.existsByUsernameOrEmailAndIdIsNot(USERNAME, EMAIL, ID)).thenReturn(true);
+        when(userRepository.existsByEmailAndIdIsNot(EMAIL, ID)).thenReturn(true);
 
         assertThatExceptionOfType(UserAlreadyExistsException.class)
                 .isThrownBy(() -> userService.update(userDto));
         verify(userRepository).findById(ID);
-        verify(userRepository).existsByUsernameOrEmailAndIdIsNot(USERNAME, EMAIL, ID);
+        verify(userRepository).existsByEmailAndIdIsNot(EMAIL, ID);
         verify(userRepository, never()).save(any());
     }
 
@@ -134,13 +134,13 @@ public class UserServiceImplTest {
         User user = createUser();
 
         when(userRepository.findById(ID)).thenReturn(Optional.of(user));
-        when(userRepository.existsByUsernameOrEmailAndIdIsNot(USERNAME, EMAIL, ID)).thenReturn(false);
+        when(userRepository.existsByEmailAndIdIsNot(EMAIL, ID)).thenReturn(false);
         when(userRepository.save(user)).thenReturn(user);
 
         UserDto actual = userService.update(expected);
         assertThat(actual, is(expected));
         verify(userRepository).findById(ID);
-        verify(userRepository).existsByUsernameOrEmailAndIdIsNot(USERNAME, EMAIL, ID);
+        verify(userRepository).existsByEmailAndIdIsNot(EMAIL, ID);
         verify(userRepository).save(user);
     }
 
