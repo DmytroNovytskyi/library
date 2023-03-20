@@ -19,9 +19,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
+    /**
+     * The UserRepository object that will be used to interact with users in database.
+     */
     private final UserRepository userRepository;
+
+    /**
+     * The BookRepository object that will be used to interact with books in database.
+     */
     private final BookRepository bookRepository;
 
+    /**
+     * Retrieves a user with the specified ID.
+     *
+     * @param id the ID of the user to retrieve
+     * @return the user with the specified ID
+     * @throws UserNotFoundException if the user with the specified ID is not found
+     */
     @Transactional
     @Override
     public UserDto getById(long id) {
@@ -29,6 +44,15 @@ public class UserServiceImpl implements UserService {
         return UserMapper.INSTANCE.mapUserDto(user);
     }
 
+    /**
+     * Retrieves a sorted and paginated list of users
+     *
+     * @param page   the page number of the results to retrieve
+     * @param size   the maximum number of results per page
+     * @param sortBy the field to sort the results by
+     * @param order  the sort order
+     * @return a page of users sorted and filtered according to the specified parameters
+     */
     @Transactional
     @Override
     public Page<UserDto> getSortedPage(int page, int size, String sortBy, String order) {
@@ -37,6 +61,13 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll(pageable).map(UserMapper.INSTANCE::mapUserDto);
     }
 
+    /**
+     * Creates a new user
+     *
+     * @param userDto the user to create
+     * @return the newly created user
+     * @throws UserAlreadyExistsException if a user with the same username or email already exists
+     */
     @Transactional
     @Override
     public UserDto create(UserDto userDto) {
@@ -47,6 +78,14 @@ public class UserServiceImpl implements UserService {
         return UserMapper.INSTANCE.mapUserDto(userRepository.save(user));
     }
 
+    /**
+     * Updates an existing user.
+     *
+     * @param userDto the user to update
+     * @return the updated user.
+     * @throws UserNotFoundException      if the user with the specified ID is not found.
+     * @throws UserAlreadyExistsException if a user with the same email already exists.
+     */
     @Transactional
     @Override
     public UserDto update(UserDto userDto) {
@@ -60,6 +99,13 @@ public class UserServiceImpl implements UserService {
         return UserMapper.INSTANCE.mapUserDto(userRepository.save(persisted));
     }
 
+    /**
+     * Deletes a user with the specified ID.
+     *
+     * @param id the ID of the user to delete
+     * @throws UserNotFoundException   if the user with the specified ID is not found
+     * @throws UserIssuedBookException if the user with the specified ID has issued books
+     */
     @Transactional
     @Override
     public void deleteById(long id) {
@@ -70,6 +116,17 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
+    /**
+     * Issues a book to a user.
+     *
+     * @param userId the ID of the user to issue the book to
+     * @param bookId the ID of the book to issue
+     * @return the updated user
+     * @throws UserNotFoundException      if the user with the specified ID is not found
+     * @throws BookNotFoundException      if the book with the specified ID cannot be found
+     * @throws NoAvailableBooksException  if the book with the specified ID has no available copies left
+     * @throws BookAlreadyIssuedException if the book with the specified ID is already issued to the user
+     */
     @Transactional
     @Override
     public UserDto issueBook(long userId, long bookId) {
@@ -87,6 +144,16 @@ public class UserServiceImpl implements UserService {
         return UserMapper.INSTANCE.mapUserDto(userRepository.save(user));
     }
 
+    /**
+     * Returns a book from a user.
+     *
+     * @param userId the ID of the user to return the book from
+     * @param bookId the ID of the book to return
+     * @return the updated user
+     * @throws UserNotFoundException  if the user with the specified ID is not found
+     * @throws BookNotFoundException  if the book with the specified ID cannot be found
+     * @throws BookNotIssuedException if the book with the specified ID is not issued to the user
+     */
     @Transactional
     @Override
     public UserDto returnBook(long userId, long bookId) {

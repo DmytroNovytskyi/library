@@ -7,6 +7,9 @@ import org.hibernate.Hibernate;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * A class representing a book in the library.
+ */
 @Getter
 @Setter
 @ToString
@@ -28,6 +31,12 @@ public class Book {
     @ToString.Exclude
     private Set<User> users;
 
+    /**
+     * Checks if the specified object is equal to this book.
+     *
+     * @param o The object to compare to
+     * @return true if object is a book and IDs are equal, false otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -36,6 +45,11 @@ public class Book {
         return id != null && Objects.equals(id, book.id);
     }
 
+    /**
+     * Generates a hash code for this book.
+     *
+     * @return The hash code value.
+     */
     @Override
     public int hashCode() {
         return getClass().hashCode();

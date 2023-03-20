@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * Class for wrapping exception details including message, type, and timestamp.
+ */
 @Data
 @AllArgsConstructor
 public class ExceptionDetails {

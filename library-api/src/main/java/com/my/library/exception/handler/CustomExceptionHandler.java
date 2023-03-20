@@ -14,8 +14,18 @@ import org.springframework.web.method.HandlerMethod;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * RestControllerAdvice class to handle custom exceptions thrown by the application.
+ */
 @RestControllerAdvice
 public class CustomExceptionHandler {
+
+    /**
+     * Exception handler for MethodArgumentNotValidException.
+     *
+     * @param ex the exception object
+     * @return a list of ExceptionDetails objects
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public List<ExceptionDetails> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
@@ -26,6 +36,12 @@ public class CustomExceptionHandler {
                 .toList();
     }
 
+    /**
+     * Exception handler for ConstraintViolationException.
+     *
+     * @param ex the exception object
+     * @return a list of ExceptionDetails objects
+     */
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public List<ExceptionDetails> handleConstraintViolationException(ConstraintViolationException ex) {
@@ -36,12 +52,26 @@ public class CustomExceptionHandler {
                 .toList();
     }
 
+    /**
+     * Exception handler for ServiceException.
+     *
+     * @param ex the exception object
+     * @param hm the handler method
+     * @return an ExceptionDetails object
+     */
     @ExceptionHandler(ServiceException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ExceptionDetails handleServiceException(ServiceException ex, HandlerMethod hm) {
         return new ExceptionDetails(ex.getMessage(), ex.getExceptionType(), LocalDateTime.now());
     }
 
+    /**
+     * Exception handler for generic Exception.
+     *
+     * @param ex the exception object
+     * @param hm the handler method
+     * @return an ExceptionDetails object
+     */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ExceptionDetails handleException(Exception ex, HandlerMethod hm) {
